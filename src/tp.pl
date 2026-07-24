@@ -1,5 +1,6 @@
 :- begin_tests(tpIntegrador, []).
 
+%Tests punto 1
 test("una persona esta viva en un anio si nacio antes de ese anio y no supero su esperanza de vida", nondet):-
     estaVivo(kanne, 1370).
 
@@ -29,6 +30,40 @@ test("un enano esta vivo justo en el anio limite de su esperanza de vida", nonde
 
 test("un enano deja de estar vivo apenas pasa el anio limite de su esperanza de vida"):-
     not(estaVivo(eisen, 1501)).
+
+%Tests punto 2
+test("un personaje no recuerda una hazania que todavia no conoce"):-
+    not(esRecordada(destruirAlDemonioAura, lawine, 1380)).
+
+test("un personaje recuerda una hazania que escucho mientras no hayan pasado mas de 15 anios"):-
+    esRecordada(destruirAlDemonioAura, lawine, 1400).
+
+test("un personaje ya no recuerda una hazania que escucho cuando pasaron mas de 15 anios"):-
+   not(esRecordada(destruirAlDemonioAura, lawine, 1410)).    
+
+test("un personaje recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas"):-
+    esRecordada(destruirAlDemonioAura, voll, 1450).
+
+test("un personaje ya no recuerda una hazania leida cuando paso el lapso de tiempo correspondiente a sus paginas"):-
+    not(esRecordada(destruirAlDemonioAura, voll, 1460)).
+
+test("un personaje recuerda una hazania que presencio siempre mientras este vivo"):-
+    esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1430).
+
+test("un personaje ya no recuerda una hazania que presencio cuando no esta vivo"):-
+    not(esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1440)).
+
+test("una hazania esta corroborada cuando solo se recuerda una version"):-
+    estaCorroborada(rescatarALaHermanaDeWiber).
+
+test("una hazania no esta corroborada cuando se recuerda mas de una version"):-
+    not(estaCorroborada(destruirAlDemonioAura)).
+
+test("una hazania paso al olvido cuando ya no la recuerda nadie vivo"):-
+    pasoAlOlvido(destruirAlDemonioAura,1460).
+
+test("una hazania no paso al olvido cuando todavia vive alguien que la recuerde"):-
+    not(pasoAlOlvido(destruirAlDemonioAura,1440)).
 
 :- end_tests(tpIntegrador).
 
@@ -81,16 +116,16 @@ conoceHazania(kanne, presencio, 1375, recuperarAlGatoPerdido, heroes(himmel, fri
 %aniosPorEscucha(15). 
 
 esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, presencio,AnioRecuerdo,Hazania,Heroes,Lugar),
+    conoceHazania(Personaje, presencio,AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
     estaVivo(Personaje, Anio).
 esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, escucho,AnioRecuerdo,Hazania,Heroes,Lugar),
+    conoceHazania(Personaje, escucho,AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
     Anio =< AnioRecuerdo + 15,
     estaVivo(Personaje, Anio).
 esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, leyo(lectura, CantidadLectura),AnioRecuerdo,Hazania,Heroes,Lugar),
+    conoceHazania(Personaje, leyo(lectura, CantidadLectura),AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
     Anio =< AnioRecuerdo + CantidadLectura,
     estaVivo(Personaje, Anio).
