@@ -115,20 +115,20 @@ conoceHazania(kanne, presencio, 1375, recuperarAlGatoPerdido, heroes(himmel, fri
 
 %aniosPorEscucha(15). 
 
-esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, presencio,AnioRecuerdo,Hazania,_,_),
+esRecordada(Hazania, Persona, Anio):-
+    conoceHazania(Persona, presencio,AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
-    estaVivo(Personaje, Anio).
-esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, escucho,AnioRecuerdo,Hazania,_,_),
+    estaVivo(Persona, Anio).
+esRecordada(Hazania, Persona, Anio):-
+    conoceHazania(Persona, escucho,AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
     Anio =< AnioRecuerdo + 15,
-    estaVivo(Personaje, Anio).
-esRecordada(Hazania, Personaje, Anio):-
-    conoceHazania(Personaje, leyo(lectura, CantidadLectura),AnioRecuerdo,Hazania,_,_),
+    estaVivo(Persona, Anio).
+esRecordada(Hazania, Persona, Anio):-
+    conoceHazania(Persona, leyo(lectura, CantidadLectura),AnioRecuerdo,Hazania,_,_),
     Anio >= AnioRecuerdo,
     Anio =< AnioRecuerdo + CantidadLectura,
-    estaVivo(Personaje, Anio).
+    estaVivo(Persona, Anio).
 
 %Queremos contestar sí una hazaña está o no corroborada.
 %na hazaña está corroborada si solo hay una versión de la misma, y no lo está si hubo diferentes personas que la conocieron con distintos detalles
@@ -145,4 +145,22 @@ estaCorroborada(Hazania):-
 
 %Queremos saber si en cierto año una hazaña pasó al olvido, lo cuál ocurre si ya nadie la recuerda en ese año.
 pasoAlOlvido(Hazania,Anio):-
-    not((persona(Personaje,_,_,_) , esRecordada(Hazania, Personaje, Anio))).
+    not((persona(Persona,_,_,_) , esRecordada(Hazania, Persona, Anio))).
+
+%----------------------------------------------
+
+%Punto 3: conmemorando hazañas 
+
+% A
+
+%diaFestivo(Pueblo, Hazania, AnioInicio)
+diaFestivo(weise, destruirAlReyDemonio, 1340).
+
+%estatua(Pueblo, Material, Nombre, Hazania, AnioConstruccion)
+estatua(auberst, bronce, elEquipoDeHeroes, destruirAlReyDemonio, 1370).
+estatua(auberst, marmol, elHeroeDelSur, destruirASchlatElOmnisciente, 1340).
+
+%mantenimiento(Nombre, Anio)
+mantenimiento(elEquipoDeHeroes, 1400).
+mantenimiento(elEquipoDeHeroes, 1450).
+mantenimiento(elHeroeDelSur, 1410).
