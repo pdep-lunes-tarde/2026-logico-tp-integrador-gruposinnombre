@@ -32,29 +32,29 @@ test("un enano deja de estar vivo apenas pasa el anio limite de su esperanza de 
     not(estaVivo(eisen, 1501)).
 
 %Tests punto 2
-test("un personaje no recuerda una hazania que todavia no conoce"):-
+test("una persona no recuerda una hazania que todavia no conoce"):-
     not(esRecordada(destruirAlDemonioAura, lawine, 1380)).
 
-test("un personaje recuerda una hazania que escucho mientras no hayan pasado mas de 15 anios"):-
+test("una persona recuerda una hazania que escucho mientras no hayan pasado mas de 15 anios"):-
     esRecordada(destruirAlDemonioAura, lawine, 1400).
 
-test("un personaje ya no recuerda una hazania que escucho cuando pasaron mas de 15 anios"):-
+test("una persona ya no recuerda una hazania que escucho cuando pasaron mas de 15 anios"):-
    not(esRecordada(destruirAlDemonioAura, lawine, 1410)).    
 
-test("un personaje recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas"):-
+test("una persona recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas"):-
     esRecordada(destruirAlDemonioAura, voll, 1450).
 
-test("un personaje ya no recuerda una hazania leida cuando paso el lapso de tiempo correspondiente a sus paginas"):-
+test("una persona ya no recuerda una hazania leida cuando paso el lapso de tiempo correspondiente a sus paginas"):-
     not(esRecordada(destruirAlDemonioAura, voll, 1460)).
 
-test("un personaje recuerda una hazania que presencio siempre mientras este vivo"):-
+test("una persona recuerda una hazania que presencio siempre mientras este vivo"):-
     esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1430).
 
-test("un personaje ya no recuerda una hazania que presencio cuando no esta vivo"):-
+test("una persona ya no recuerda una hazania que presencio cuando no esta vivo"):-
     not(esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1440)).
 
 test("una hazania esta corroborada cuando solo se recuerda una version"):-
-    estaCorroborada(rescatarALaHermanaDeWiber).
+    estaCorroborada(rescatarALaHermanaDeWirbel).
 
 test("una hazania no esta corroborada cuando se recuerda mas de una version"):-
     not(estaCorroborada(destruirAlDemonioAura)).
@@ -64,6 +64,59 @@ test("una hazania paso al olvido cuando ya no la recuerda nadie vivo"):-
 
 test("una hazania no paso al olvido cuando todavia vive alguien que la recuerde"):-
     not(pasoAlOlvido(destruirAlDemonioAura,1440)).
+
+% Tests Punto 3
+%A
+
+test("un pueblo puede conmemorar una hazania mediante un dia festivo", nondet):-
+    diaFestivo(weise, destruirAlReyDemonio, 1340).
+
+test("un pueblo puede conmemorar una hazania mediante una estatua de bronce", nondet):-
+    estatua(auberst, bronce, elEquipoDeHeroes, destruirAlReyDemonio, 1370).
+
+test("un pueblo puede conmemorar una hazania mediante una estatua de marmol", nondet):-
+    estatua(auberst, marmol, elHeroeDelSur, destruirASchlatElOmnisciente, 1340).
+
+test("una estatua puede recibir mantenimiento en distintos anios", nondet):-
+    mantenimiento(elEquipoDeHeroes, 1400),
+    mantenimiento(elEquipoDeHeroes, 1450).
+
+test("una estatua de marmol puede recibir mantenimiento", nondet):-
+    mantenimiento(elHeroeDelSur, 1410).
+
+%B
+test("Una persona recuerda una hazaña conmemorada por una estatua de su pueblo si la estatua está en buen estado", nondet) :-
+    esRecordada(destruirAlReyDemonio, lawine, 1400).
+
+test("Una persona no recuerda una hazaña conmemorada por una estatua de su pueblo si la estatua no está en buen estadp"):-
+    not(esRecordada(destruirAlReyDemonio, lawine, 1390)).
+
+test("Una persona recuerda una hazaña conmemorada con un día festivoen el pueblo donde vive", nondet):-
+    esRecordada(destruirAlReyDemonio, fern, 1400).
+
+test("si una conmemoracion comenzo antes de que naciera una persona, la conoce desde el anio de su nacimiento", nondet):-
+    esRecordada(destruirAlReyDemonio, fern, 1370).
+
+test("una persona no recuerda una hazania conmemorada antes de haber nacido"):-
+    not(esRecordada(destruirAlReyDemonio, fern, 1369)).
+
+test("una estatua de bronce sigue en buen estado hasta 15 anios despues de su construccion", nondet):-
+    estatuaEnBuenEstado(elEquipoDeHeroes, 1385).
+
+test("una estatua de bronce deja de estar en buen estado cuando pasan mas de 15 anios desde su construccion"):-
+    not(estatuaEnBuenEstado(elEquipoDeHeroes, 1386)).
+
+test("una estatua vuelve a estar en buen estado cuando recibe mantenimiento", nondet):-
+    estatuaEnBuenEstado(elEquipoDeHeroes, 1400).
+
+test("un mantenimiento futuro no permite considerar que una estatua esta en buen estado"):-
+    not(estatuaEnBuenEstado(elEquipoDeHeroes, 1390)).
+
+test("una estatua de marmol sigue en buen estado hasta 30 anios despues de su mantenimiento", nondet):-
+    estatuaEnBuenEstado(elHeroeDelSur, 1440).
+
+test("una estatua de marmol deja de estar en buen estado cuando pasan mas de 30 anios desde su mantenimiento"):-
+    not(estatuaEnBuenEstado(elHeroeDelSur, 1441)).
 
 :- end_tests(tpIntegrador).
 
@@ -130,12 +183,22 @@ esRecordada(Hazania, Persona, Anio):-
     Anio =< AnioRecuerdo + CantidadLectura,
     estaVivo(Persona, Anio).
 
+%3 Para reconocer una hazaña por conmemoración.
+
+esRecordada(Hazania, Persona, Anio) :-
+    esRecordadaPorConmemoracion(Hazania, Persona, Anio).
+
 %Queremos contestar sí una hazaña está o no corroborada.
 %na hazaña está corroborada si solo hay una versión de la misma, y no lo está si hubo diferentes personas que la conocieron con distintos detalles
 %(ya sea diferentes personas que la llevaron a cabo o diferente lugar en el que ocurrió la hazaña)
 %No importa el año o si las personas las recuerdan al mismo tiempo para esto.
 
 estaCorroborada(Hazania):-
+    %-----------------------------------------------------
+    %sugerencia: corroborar primero que una hazaña exista.
+    conoceHazania( _, _, _, Hazania, _, _),
+    %Fin sugerencia.
+    %-----------------------------------------------------
     not((
         conoceHazania(_, _, _, Hazania, Heroes, Lugar),
         conoceHazania(_, _, _, Hazania, OtrosHeroes, OtroLugar),
@@ -164,3 +227,66 @@ estatua(auberst, marmol, elHeroeDelSur, destruirASchlatElOmnisciente, 1340).
 mantenimiento(elEquipoDeHeroes, 1400).
 mantenimiento(elEquipoDeHeroes, 1450).
 mantenimiento(elHeroeDelSur, 1410).
+
+%Cantidad de años que una estatua permanece en buen estado
+%aniosEnBuenEstado(material, años)
+aniosEnBuenEstado(marmol, 30).
+aniosEnBuenEstado(bronce, 15).
+
+%Año desde el que una persona conoce la hazaña.
+%Si ya había nacido cuando comenzó la conmemoración, la conoce desde el comienzo.
+anioEnQueConoce(AnioInicio, AnioNacimiento, AnioInicio) :-
+    AnioInicio >= AnioNacimiento.
+
+%Si nació después, la conoce desde su nacimiento.
+anioEnQueConoce(AnioInicio, AnioNacimiento, AnioNacimiento) :-
+    AnioNacimiento > AnioInicio.
+
+%Una estatua fue puesta en condiciones cuando fue construida.
+puestaEnCondiciones(NombreEstatua, AnioConstruccion) :-
+    estatua(_, _, NombreEstatua, _, AnioConstruccion).
+
+%También vuelve a quedar encondiciones cuando recibe mantenimiento.
+puestaEnCondiciones(NombreEstatua, AnioMantenimiento) :-
+    mantenimiento(NombreEstatua, AnioMantenimiento).
+
+%Una estatua estáen buen estado si desde su construcción o último mantenimiento no pasó más
+%tiempo del permitido.
+estatuaEnBuenEstado(NombreEstatua, AnioConsulta) :-
+    estatua(_, Material, NombreEstatua, _, _),
+    aniosEnBuenEstado(Material, CantidadAnios),
+    puestaEnCondiciones(NombreEstatua, AnioPuestaEnCondiciones),
+    AnioPuestaEnCondiciones =< AnioConsulta,
+    AnioConsulta =< AnioPuestaEnCondiciones + CantidadAnios.
+
+%Recuerdo por día festivo
+
+esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
+    persona(Persona, Pueblo, AnioNacimiento, _),
+    diaFestivo(Pueblo, Hazania, AnioInicio),
+    anioEnQueConoce(
+        AnioInicio,
+        AnioNacimiento,
+        AnioConocimiento
+    ),
+    Anio >= AnioConocimiento,
+    estaVivo(Persona, Anio).
+
+% Recuerdo por estatua
+esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
+    persona(Persona, Pueblo, AnioNacimiento, _),
+    estatua(
+        Pueblo,
+        _,
+        NombreEstatua,
+        Hazania,
+        AnioConstruccion
+    ),
+    anioEnQueConoce(
+        AnioConstruccion, 
+        AnioNacimiento,
+        AnioConocimiento    
+    ),
+    Anio >= AnioConocimiento,
+    estatuaEnBuenEstado(NombreEstatua, Anio),
+    estaVivo(Persona, Anio).
