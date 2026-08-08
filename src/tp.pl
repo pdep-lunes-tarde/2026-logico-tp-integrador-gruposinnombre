@@ -188,10 +188,10 @@ test("un enano esta vivo si no pasaron mas de 350 anios desde su nacimiento", no
 test("un enano no esta vivo si ya pasaron mas de 350 anios desde su nacimiento"):-
     not(estaVivo(voll, 1551)).
 
-test("un elfo esta vivo en cualquier anio posterior a su nacimiento, sin importar cuanto tiempo paso", nondet):-
+test("un ser inmortal esta vivo en cualquier anio posterior a su nacimiento, sin importar cuanto tiempo paso", nondet):-
     estaVivo(serie, 5000).
 
-test("un elfo nunca muere de viejo", nondet):-
+test("un ser inmortal nunca muere de viejo", nondet):-
     estaVivo(frieren, 5000).
 
 test("una persona no esta viva en el anio anterior a su nacimiento"):-
@@ -211,7 +211,7 @@ test("una persona recuerda una hazania que escucho mientras no hayan pasado mas 
     esRecordada(destruirAlDemonioAura, lawine, 1400).
 
 test("una persona ya no recuerda una hazania que escucho cuando pasaron mas de 15 anios"):-
-   not(esRecordada(destruirAlDemonioAura, lawine, 1410)).    
+    not(esRecordada(destruirAlDemonioAura, lawine, 1410)).    
 
 test("una persona recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas"):-
     esRecordada(destruirAlDemonioAura, voll, 1450).
