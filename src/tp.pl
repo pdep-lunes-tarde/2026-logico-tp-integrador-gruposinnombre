@@ -30,63 +30,60 @@ murio(Persona, Anio):-
     Anio > AnioNacimiento + Anios.
 
 %Punto 2: los recuerdos
-%conoceHazania(personaje, forma, anio, hazania, heroes, hugar)
+%conoceHazania(personaje, forma(cantidadPaginas), anio, hazania (Hazania, heroes, hugar))
 
-conoceHazania(wirbel, presencio, 1390, rescatarALaHermanaDeWirbel, heroes(stark, fern), klares).
-conoceHazania(frieren, presencio, 1390, rescatarALaHermanaDeWirbel, heroes(stark, fern), klares).
-conoceHazania(lawine, escucho, 1393, destruirAlDemonioAura, heroes(frieren), weise).
-conoceHazania(voll, leyo(lectura,50), 1400, destruirAlDemonioAura, heroes(denken), auberst). %otra version misma hazania
-conoceHazania(serie, leyo(lectura,100), 1335, destruirAlReyDemonio, heroes(frieren, himmel, heiter, eisen), ende).
-conoceHazania(kanne, presencio, 1375, recuperarAlGatoPerdido, heroes(himmel, frieren), weise).
+conoceHazania(wirbel, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, heroes(stark, fern), klares)).
+conoceHazania(frieren, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, heroes(stark, fern), klares)).
+conoceHazania(lawine, escucho, 1393, hazania(destruirAlDemonioAura, heroes(frieren), weise)).
+conoceHazania(voll, leyo(50), 1400, hazania(destruirAlDemonioAura, heroes(denken), auberst)). %otra version misma hazania
+conoceHazania(serie, leyo(100), 1335, hazania(destruirAlReyDemonio, heroes(frieren, himmel, heiter, eisen), ende)).
+conoceHazania(kanne, presencio, 1375, hazania(recuperarAlGatoPerdido, heroes(himmel, frieren), weise)).
 
 %Queremos poder contestar sí una hazaña es recordada por alguien en cierto año, sabiendo que:
     %si una persona presenció una hazaña, la recuerda desde ese momento por el resto de su vida.
     %si una persona escuchó una canción sobre una hazaña, la recuerda por 15 años.
     %si una persona leyó un libro sobre una hazaña, la recuerda por tantos años como páginas tenga el libro.        
 
-%aniosPorEscucha(15). 
+aniosPorEscucha(15). 
+
+calculoLimiteRecuerdo(presencio, _, inf).
+calculoLimiteRecuerdo(escucho, AnioRecuerdo, AnioLimite):-
+    aniosPorEscucha(CantidadAnios),
+    AnioLimite is AnioRecuerdo + CantidadAnios.
+calculoLimiteRecuerdo(leyo(Paginas), AnioRecuerdo, AnioLimite):-
+    AnioLimite is AnioRecuerdo + Paginas.
 
 esRecordada(Hazania, Persona, Anio):-
-    conoceHazania(Persona, presencio,AnioRecuerdo,Hazania,_,_),
+    conoceHazania(Persona, Modo, AnioRecuerdo, hazania(Hazania, _, _)),
+    calculoLimiteRecuerdo(Modo, AnioRecuerdo, AnioLimite),
     Anio >= AnioRecuerdo,
-    estaVivo(Persona, Anio).
-esRecordada(Hazania, Persona, Anio):-
-    conoceHazania(Persona, escucho,AnioRecuerdo,Hazania,_,_),
-    Anio >= AnioRecuerdo,
-    Anio =< AnioRecuerdo + 15,
-    estaVivo(Persona, Anio).
-esRecordada(Hazania, Persona, Anio):-
-    conoceHazania(Persona, leyo(lectura, CantidadLectura),AnioRecuerdo,Hazania,_,_),
-    Anio >= AnioRecuerdo,
-    Anio =< AnioRecuerdo + CantidadLectura,
+    Anio =< AnioLimite,
     estaVivo(Persona, Anio).
 
-%3 Para reconocer una hazaña por conmemoración.
+% Para reconocer una hazaña por conmemoración.
 
-esRecordada(Hazania, Persona, Anio) :-
-    esRecordadaPorConmemoracion(Hazania, Persona, Anio).
+% esRecordada(Hazania, Persona, Anio) :-
+%     esRecordadaPorConmemoracion(Hazania, Persona, Anio).
 
-%Queremos contestar sí una hazaña está o no corroborada.
-%na hazaña está corroborada si solo hay una versión de la misma, y no lo está si hubo diferentes personas que la conocieron con distintos detalles
-%(ya sea diferentes personas que la llevaron a cabo o diferente lugar en el que ocurrió la hazaña)
-%No importa el año o si las personas las recuerdan al mismo tiempo para esto.
+% Queremos contestar sí una hazaña está o no corroborada.
+% Una hazaña está corroborada si solo hay una versión de la misma, y no lo está si hubo diferentes personas que la conocieron con distintos detalles
+% (ya sea diferentes personas que la llevaron a cabo o diferente lugar en el que ocurrió la hazaña)
+% No importa el año o si las personas las recuerdan al mismo tiempo para esto.
 
 estaCorroborada(Hazania):-
-    %-----------------------------------------------------
-    %sugerencia: corroborar primero que una hazaña exista.
-    conoceHazania( _, _, _, Hazania, _, _),
-    %Fin sugerencia.
-    %-----------------------------------------------------
-    not((
-        conoceHazania(_, _, _, Hazania, Heroes, Lugar),
-        conoceHazania(_, _, _, Hazania, OtrosHeroes, OtroLugar),
-        (Heroes \= OtrosHeroes ; Lugar \= OtroLugar)
-    )).
-    %si alguien conoce otra version con otros heroes y/o lugar da true -> con el not devuelve false y viceversa.
+    conoceHazania( _, _, _, hazania(Hazania, Heroes, Lugar)),
+    forall(
+        conoceHazania( _, _, _, hazania(Hazania, OtrosHeroes, OtroLugar)),
+        (Heroes == OtrosHeroes, Lugar == OtroLugar)
+        ).
 
 %Queremos saber si en cierto año una hazaña pasó al olvido, lo cuál ocurre si ya nadie la recuerda en ese año.
 pasoAlOlvido(Hazania,Anio):-
-    not((persona(Persona,_,_,_) , esRecordada(Hazania, Persona, Anio))).
+    conoceHazania( _, _, _, hazania(Hazania, Heroes, Lugar)),
+    not(
+        (persona(Persona,_,_,_), 
+        esRecordada(Hazania, Persona, Anio))
+        ).
 
 %----------------------------------------------
 
@@ -138,8 +135,7 @@ estatuaEnBuenEstado(NombreEstatua, AnioConsulta) :-
     AnioConsulta =< AnioPuestaEnCondiciones + CantidadAnios.
 
 %Recuerdo por día festivo
-
-esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
+esRecordada(Hazania, Persona, Anio) :-
     persona(Persona, Pueblo, AnioNacimiento, _),
     diaFestivo(Pueblo, Hazania, AnioInicio),
     anioEnQueConoce(
@@ -151,7 +147,7 @@ esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
     estaVivo(Persona, Anio).
 
 % Recuerdo por estatua
-esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
+esRecordada(Hazania, Persona, Anio) :-
     persona(Persona, Pueblo, AnioNacimiento, _),
     estatua(
         Pueblo,
@@ -168,7 +164,7 @@ esRecordadaPorConmemoracion(Hazania, Persona, Anio) :-
     Anio >= AnioConocimiento,
     estatuaEnBuenEstado(NombreEstatua, Anio),
     estaVivo(Persona, Anio).
-
+% tira error porque no pusimos las 3 reglas continuas, deberíamos cambiarlo?
 
 :- begin_tests(tpIntegrador, []).
 
