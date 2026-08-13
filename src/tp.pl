@@ -60,10 +60,6 @@ esRecordada(Hazania, Persona, Anio):-
     Anio =< AnioLimite,
     estaVivo(Persona, Anio).
 
-% Para reconocer una hazaña por conmemoración.
-
-% esRecordada(Hazania, Persona, Anio) :-
-%     esRecordadaPorConmemoracion(Hazania, Persona, Anio).
 
 % Queremos contestar sí una hazaña está o no corroborada.
 % Una hazaña está corroborada si solo hay una versión de la misma, y no lo está si hubo diferentes personas que la conocieron con distintos detalles
@@ -108,14 +104,23 @@ mantenimiento(elHeroeDelSur, 1410).
 aniosEnBuenEstado(marmol, 30).
 aniosEnBuenEstado(bronce, 15).
 
+conmemoracion(Pueblo, Hazania, diaFestivo(AnioInicio)) :-
+    diaFestivo(Pueblo, Hazania, AnioInicio).
+
+conmemoracion(Pueblo, Hazania, estatua(NombreEstatua, Material, AnioConstruccion)) :-
+    estatua(Pueblo, Material, NombreEstatua, Hazania, AnioConstruccion).
+
 %Año desde el que una persona conoce la hazaña.
 %Si ya había nacido cuando comenzó la conmemoración, la conoce desde el comienzo.
-anioEnQueConoce(AnioInicio, AnioNacimiento, AnioInicio) :-
-    AnioInicio >= AnioNacimiento.
+max(Anio, OtroAnio, Anio) :-
+    Anio >= OtroAnio.
 
 %Si nació después, la conoce desde su nacimiento.
-anioEnQueConoce(AnioInicio, AnioNacimiento, AnioNacimiento) :-
-    AnioNacimiento > AnioInicio.
+max(Anio, OtroAnio, Anio) :-
+    OtroAnio > Anio.
+
+anioEnQueConoce(AnioInicio, AnioNacimiento, AnioConocimiento) :-
+    max(AnioInicio, AnioNacimiento, AnioConocimiento).
 
 %Una estatua fue puesta en condiciones cuando fue construida.
 puestaEnCondiciones(NombreEstatua, AnioConstruccion) :-
