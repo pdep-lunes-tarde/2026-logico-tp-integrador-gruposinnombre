@@ -75,7 +75,7 @@ estaCorroborada(Hazania):-
 
 %Queremos saber si en cierto año una hazaña pasó al olvido, lo cuál ocurre si ya nadie la recuerda en ese año.
 pasoAlOlvido(Hazania,Anio):-
-    conoceHazania( _, _, _, hazania(Hazania, Heroes, Lugar)),
+    conoceHazania( _, _, _, hazania(Hazania, _, _)),
     not(
         (persona(Persona,_,_,_), 
         esRecordada(Hazania, Persona, Anio))
@@ -140,6 +140,7 @@ estatuaEnBuenEstado(NombreEstatua, AnioConsulta) :-
     AnioConsulta =< AnioPuestaEnCondiciones + CantidadAnios.
 
 %Recuerdo por día festivo
+:- discontiguous esRecordada/3. 
 esRecordada(Hazania, Persona, Anio) :-
     persona(Persona, Pueblo, AnioNacimiento, _),
     diaFestivo(Pueblo, Hazania, AnioInicio),
@@ -169,7 +170,70 @@ esRecordada(Hazania, Persona, Anio) :-
     Anio >= AnioConocimiento,
     estatuaEnBuenEstado(NombreEstatua, Anio),
     estaVivo(Persona, Anio).
-% tira error porque no pusimos las 3 reglas continuas, deberíamos cambiarlo?
+
+% Parte 2
+% Punto 4: los pueblos
+
+% Queremos saber en cierto año:
+% si en un pueblo se recuerda una hazaña. 
+puebloRecuerdaEn(Anio, Hazania, Pueblo):-
+    persona(Persona, Pueblo, _, _),
+    esRecordada(Hazania, Persona, Anio).
+
+% cuántas páginas se leyeron en un pueblo. 
+% Esto es el total de hojas leídas por habitantes de ese pueblo en ese año.
+leidoPorElPuebloEn(Anio, Pueblo, Cantidad):-
+    findall(Pagina, (conoceHazania(Persona, leyo(Pagina), Anio, _), persona(Persona, Pueblo, _, _)), Paginas),
+    sum_list(Paginas, Cantidad).  
+
+% Cual es el pueblo mas lector.
+puebloMasLectorEn(Anio, Pueblo):-
+    persona(_, Pueblo, _, _),
+    leidoPorElPuebloEn(Anio, Pueblo, Cantidad),
+    forall(
+        persona(_, OtroPueblo, _, _),
+        (leidoPorElPuebloEn(Anio, OtroPueblo, OtraCantidad), Cantidad >= OtraCantidad)
+        ).
+% funciona provisoriamente, en caso de que hubiesen mas pueblos que hayan leido en el mismo año habria que cambiar la logica, no es escalable.
+
+% si un pueblo es musical, que se cumple si la mayoría de las hazañas que se recuerdan en un pueblo se recuerdan a través de canciones 
+% (si se recuerdan por canciones, pero también de otras maneras, sigue siendo musical).
+% esMusicalEn(Anio, Pueblo):-
+%     persona(Persona, Pueblo, _, _),
+%     conoceHazania(Persona, Modo,_, _),
+%     findall(Modo, conoceHazania(_, Modo, _, _), Modos),    
+%     length(Modos, CantidadTotalHazanias),    
+%     nth1(_, Modos, escucho, HazaniasSinCanciones),
+%     length(HazaniasSinCanciones, CantidadSinCanciones),
+%     CantidadConCanciones is CantidadTotalHazanias - CantidadSinCanciones,
+%     CantidadConCanciones > CantidadSinCanciones.
+
+% si un pueblo es chismoso, que ocurre cuando ninguna de las hazañas que se recuerdan en ese pueblo está corroborada.
+esChismosoEn(Anio, Pueblo):-
+    puebloRecuerdaEn(Anio, _, Pueblo),
+    forall(
+        puebloRecuerdaEn(Anio, Hazania, Pueblo),
+        not(estaCorroborada(Hazania))
+    ).
+
+% si una hazaña es importante para un pueblo. Esto ocurre cuando todos los habitantes de ese pueblo que viven en ese año la recuerdan.
+esImportanteEn(Anio, Pueblo, Hazania):-
+    persona(_, Pueblo, _, _),
+    forall(
+        (persona(Persona, Pueblo, _, _), estaVivo(Persona, Anio)),
+        esRecordada(Hazania, Persona, Anio)
+    ).
+
+% si un pueblo está viviendo tiempos sin precedentes,
+% se cumple si todas las hazañas importantes que se recuerdan en un pueblo se recuerdan porque alguien del pueblo las presenció.
+
+viviendoSinPrecedentes(Anio, Pueblo):-
+    persona(_, Pueblo, _, _),
+    forall(
+        esImportanteEn(Anio, Pueblo, Hazania),
+        (persona(Persona, Pueblo, _, _),
+         conoceHazania(Persona, presencio, _, hazania(Hazania, _, _)))
+    ).
 
 :- begin_tests(tpIntegrador, []).
 
@@ -290,5 +354,45 @@ test("una estatua de marmol sigue en buen estado hasta 30 anios despues de su ma
 
 test("una estatua de marmol deja de estar en buen estado cuando pasan mas de 30 anios desde su mantenimiento"):-
     not(estatuaEnBuenEstado(elHeroeDelSur, 1441)).
+
+%Tests punto 4
+test("Hay pueblos que recuerdan Hazanias"):-
+    puebloRecuerdaEn(1400, destruirAlReyDemonio, weise).
+
+test("Hay pueblos que recuerdan Hazanias"):-
+    puebloRecuerdaEn(1395, rescatarALaHermanaDeWirbel, klares).
+
+test("Hay pueblos que ya no recuerdan Hazanias"):-
+    not(puebloRecuerdaEn(1395, destruirAlReyDemonio, klares)).
+
+test("Hay pueblos que leyeron durante algun anio"):-
+    leidoPorElPuebloEn(1335, weise, 100).
+
+test("Hay pueblos que no leyeron durante algun anio"):-
+    leidoPorElPuebloEn(1336, weise, 0).
+
+% test("Hay anios que los pueblos son musicales"):-
+%     esMusicalEn(1395, auberst). 
+
+% test("Hay anios que los pueblos no son musicales"):-
+%     not(esMusicalEn(1400, weise)).
+
+test("Hay anios que algunos pueblos son chismosos"):-
+    esChismosoEn(1420, ende).
+
+test("Hay anios que algunos pueblos NO son chismosos"):-
+    not(esChismosoEn(1400, weise)).
+
+test("Hay anios que un pueblo considera hazanias importantes"):-
+    esImportanteEn(1400, weise, destruirAlReyDemonio).
+
+test("Hay anios que un pueblo no considera hazanias importantes"):-
+    not(esImportanteEn(1400, weise, recuperarAlGatoPerdido)).
+
+test("Hay pueblos que estan viviendo tiempos sin precedentes"):-
+    viviendoSinPrecedentes(1395, klares).
+
+% test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
+%     not(viviendoSinPrecedentes(1400, weise)).
 
 :- end_tests(tpIntegrador).
