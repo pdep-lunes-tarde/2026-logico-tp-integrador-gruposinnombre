@@ -198,15 +198,28 @@ puebloMasLectorEn(Anio, Pueblo):-
 
 % si un pueblo es musical, que se cumple si la mayoría de las hazañas que se recuerdan en un pueblo se recuerdan a través de canciones 
 % (si se recuerdan por canciones, pero también de otras maneras, sigue siendo musical).
-% esMusicalEn(Anio, Pueblo):-
-%     persona(Persona, Pueblo, _, _),
-%     conoceHazania(Persona, Modo,_, _),
-%     findall(Modo, conoceHazania(_, Modo, _, _), Modos),    
-%     length(Modos, CantidadTotalHazanias),    
-%     nth1(_, Modos, escucho, HazaniasSinCanciones),
-%     length(HazaniasSinCanciones, CantidadSinCanciones),
-%     CantidadConCanciones is CantidadTotalHazanias - CantidadSinCanciones,
-%     CantidadConCanciones > CantidadSinCanciones.
+% Hago una lista con todas las hazañas que recuerda el pueblo, luego una lista de todas las hazañas que recuerda el pueblo CON CANCION y calculo si la segunda es mayor o igual a la mitad de la primera
+esMusicalEn(Anio, Pueblo) :-
+    findall(
+        Hazania,
+        puebloRecuerdaEn(Anio, Hazania, Pueblo),
+        ListaHazanias
+    ),
+    sort(ListaHazanias, Hazanias), % sort elimina elementos repetidos de la lista (Sugerencia de Claude cuando le mostre lo que habia armado, sino nunca se me hubiese ocurrido que podian repetirse)
+    findall(
+        Hazania,
+        (
+            puebloRecuerdaEn(Anio, Hazania, Pueblo),
+            conoceHazania(_, escucho, _, hazania(Hazania, _, _))
+        ),
+        ListaConCancion
+    ),
+    sort(ListaConCancion, HazaniasConCancion),
+    length(Hazanias, Total),
+    length(HazaniasConCancion, ConCancion),
+
+    Total > 0,
+    ConCancion * 2 > Total.
 
 % si un pueblo es chismoso, que ocurre cuando ninguna de las hazañas que se recuerdan en ese pueblo está corroborada.
 esChismosoEn(Anio, Pueblo):-
@@ -226,13 +239,12 @@ esImportanteEn(Anio, Pueblo, Hazania):-
 
 % si un pueblo está viviendo tiempos sin precedentes,
 % se cumple si todas las hazañas importantes que se recuerdan en un pueblo se recuerdan porque alguien del pueblo las presenció.
-
 viviendoSinPrecedentes(Anio, Pueblo):-
     persona(_, Pueblo, _, _),
     forall(
         esImportanteEn(Anio, Pueblo, Hazania),
         (persona(Persona, Pueblo, _, _),
-         conoceHazania(Persona, presencio, _, hazania(Hazania, _, _)))
+        conoceHazania(Persona, presencio, _, hazania(Hazania, _, _)))
     ).
 
 :- begin_tests(tpIntegrador, []).
@@ -272,38 +284,37 @@ test("un enano deja de estar vivo apenas pasa el anio limite de su esperanza de 
 test("una persona no recuerda una hazania que todavia no conoce"):-
     not(esRecordada(destruirAlDemonioAura, lawine, 1380)).
 
-test("una persona recuerda una hazania que escucho mientras no hayan pasado mas de 15 anios"):-
+test("una persona recuerda una hazania que escucho mientras no hayan pasado mas de 15 anios", nondet):-
     esRecordada(destruirAlDemonioAura, lawine, 1400).
 
 test("una persona ya no recuerda una hazania que escucho cuando pasaron mas de 15 anios"):-
     not(esRecordada(destruirAlDemonioAura, lawine, 1410)).    
 
-test("una persona recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas"):-
+test("una persona recuerda una hazania que leyo cuando todavia no paso el lapso de tiempo correspondiente a sus paginas", nondet):-
     esRecordada(destruirAlDemonioAura, voll, 1450).
 
 test("una persona ya no recuerda una hazania leida cuando paso el lapso de tiempo correspondiente a sus paginas"):-
     not(esRecordada(destruirAlDemonioAura, voll, 1460)).
 
-test("una persona recuerda una hazania que presencio siempre mientras este vivo"):-
+test("una persona recuerda una hazania que presencio siempre mientras este vivo", nondet):-
     esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1430).
 
 test("una persona ya no recuerda una hazania que presencio cuando no esta vivo"):-
     not(esRecordada(rescatarALaHermanaDeWirbel, wirbel, 1440)).
 
-test("una hazania esta corroborada cuando solo se recuerda una version"):-
+test("una hazania esta corroborada cuando solo se recuerda una version", nondet):-
     estaCorroborada(rescatarALaHermanaDeWirbel).
 
 test("una hazania no esta corroborada cuando se recuerda mas de una version"):-
     not(estaCorroborada(destruirAlDemonioAura)).
 
-test("una hazania paso al olvido cuando ya no la recuerda nadie vivo"):-
+test("una hazania paso al olvido cuando ya no la recuerda nadie vivo", nondet):-
     pasoAlOlvido(destruirAlDemonioAura,1460).
 
 test("una hazania no paso al olvido cuando todavia vive alguien que la recuerde"):-
     not(pasoAlOlvido(destruirAlDemonioAura,1440)).
 
 % Tests Punto 3
-%A
 
 test("un pueblo puede conmemorar una hazania mediante un dia festivo", nondet):-
     diaFestivo(weise, destruirAlReyDemonio, 1340).
@@ -356,10 +367,10 @@ test("una estatua de marmol deja de estar en buen estado cuando pasan mas de 30 
     not(estatuaEnBuenEstado(elHeroeDelSur, 1441)).
 
 %Tests punto 4
-test("Hay pueblos que recuerdan Hazanias"):-
+test("Hay pueblos que recuerdan Hazanias", nondet):-
     puebloRecuerdaEn(1400, destruirAlReyDemonio, weise).
 
-test("Hay pueblos que recuerdan Hazanias"):-
+test("Hay pueblos que recuerdan Hazanias", nondet):-
     puebloRecuerdaEn(1395, rescatarALaHermanaDeWirbel, klares).
 
 test("Hay pueblos que ya no recuerdan Hazanias"):-
@@ -371,19 +382,19 @@ test("Hay pueblos que leyeron durante algun anio"):-
 test("Hay pueblos que no leyeron durante algun anio"):-
     leidoPorElPuebloEn(1336, weise, 0).
 
-% test("Hay anios que los pueblos son musicales"):-
-%     esMusicalEn(1395, auberst). 
+test("Hay anios que los pueblos son musicales"):-
+    esMusicalEn(1395, auberst). 
 
-% test("Hay anios que los pueblos no son musicales"):-
-%     not(esMusicalEn(1400, weise)).
+test("Hay anios que los pueblos no son musicales"):-
+    not(esMusicalEn(1400, weise)).
 
-test("Hay anios que algunos pueblos son chismosos"):-
+test("Hay anios que algunos pueblos son chismosos", nondet):-
     esChismosoEn(1420, ende).
 
 test("Hay anios que algunos pueblos NO son chismosos"):-
     not(esChismosoEn(1400, weise)).
 
-test("Hay anios que un pueblo considera hazanias importantes"):-
+test("Hay anios que un pueblo considera hazanias importantes", nondet):-
     esImportanteEn(1400, weise, destruirAlReyDemonio).
 
 test("Hay anios que un pueblo no considera hazanias importantes"):-
