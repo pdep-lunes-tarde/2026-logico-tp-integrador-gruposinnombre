@@ -247,6 +247,33 @@ viviendoSinPrecedentes(Anio, Pueblo):-
         conoceHazania(Persona, presencio, _, hazania(Hazania, _, _)))
     ).
 
+%--------------------------
+% Punto 5
+
+esUnHeroe(Persona) :- 
+    conoceHazania(_, _, _, hazania(_, Heroes, _)), 
+    arg(_, Heroes, Persona).
+% arg(posicion, Termino, Argumento)
+
+inspiro(Inspirador, Inspirado) :- 
+    conoceHazania(Inspirado, _, _, hazania(_, Heroes, _)), 
+    arg(_, Heroes, Inspirador), 
+    Inspirador \= Inspirado.
+
+% cadenas de inspiracion entre héroes 
+cadenaDeInspiracion(Inicial, Cadena) :-
+    cadenaDesde(Inicial, [Inicial], Cadena).
+% caso base: un solo salto
+cadenaDesde(Actual, Visitados, [Actual, Siguiente]) :-
+    inspiro(Actual, Siguiente),
+    not(member(Siguiente, Visitados)).
+%caso recursivo: un salto y seguimos desde el siguiente
+cadenaDesde(Actual, Visitados, [Actual|Resto]) :-
+    inspiro(Actual, Siguiente), 
+    not(member(Siguiente, Visitados)),
+    cadenaDesde(Siguiente, [Siguiente|Visitados], Resto).
+
+
 :- begin_tests(tpIntegrador, []).
 
 %Tests punto 1
@@ -405,5 +432,24 @@ test("Hay pueblos que estan viviendo tiempos sin precedentes"):-
 
 % test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
 %     not(viviendoSinPrecedentes(1400, weise)).
+
+% test Punto 5
+test("Frieren es un heroe porque participo en una hazania conocida"):-
+    esUnHeroe(frieren).
+
+test("Wirbel no es un heroe porque no participo en ninguna hazania"):-
+    not(esUnHeroe(wirbel)).
+
+test("Stark inspiro a Frieren"):-
+    inspiro(stark, frieren).
+
+test("Nadie inspiro a Eisen"):-
+    not(inspiro(_, eisen)).
+
+test("Denken no inspiro a Frieren, no es cadena valida"):-
+    not(cadenaDeInspiracion(denken, [denken, frieren])).
+
+test("No es cadena valida si se repite un heroe"):-
+    not(cadenaDeInspiracion(frieren, [frieren, fern, frieren])).
 
 :- end_tests(tpIntegrador).
