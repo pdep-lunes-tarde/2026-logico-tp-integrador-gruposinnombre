@@ -252,26 +252,52 @@ viviendoSinPrecedentes(Anio, Pueblo):-
 
 esUnHeroe(Persona) :- 
     conoceHazania(_, _, _, hazania(_, Heroes, _)), 
-    arg(_, Heroes, Persona).
-% arg(posicion, Termino, Argumento)
+    estaEntreLosHeroes(Persona, Heroes).
+
+estaEntreLosHeroes(P, heroes(P)).
+estaEntreLosHeroes(P, heroes(P, _)).
+estaEntreLosHeroes(P, heroes(_, P)).
+estaEntreLosHeroes(P, heroes(P, _, _, _)).
+estaEntreLosHeroes(P, heroes(_, P, _, _)).
+estaEntreLosHeroes(P, heroes(_, _, P, _)).
+estaEntreLosHeroes(P, heroes(_, _, _, P)).
 
 inspiro(Inspirador, Inspirado) :- 
-    conoceHazania(Inspirado, _, _, hazania(_, Heroes, _)), 
-    arg(_, Heroes, Inspirador), 
+    conocioLaHazania(Inspirado, Heroes),
+    estaEntreLosHeroes(Inspirador, Heroes),
     Inspirador \= Inspirado.
+%conoció una hazaña (i con qué heroes), de las tres formas posibles:
 
-% cadenas de inspiracion entre héroes 
+% por conoceHazania 
+conocioLaHazania(Persona, Heroes) :-
+    conoceHazania(Persona, _, _, hazania(_, Heroes, _)).
+
+% por día festivo en su pueblo
+conocioLaHazania(Persona, Heroes) :-
+    persona(Persona, Pueblo, _, _),
+    diaFestivo(Pueblo, Hazania, _),
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
+
+% por estatua en su pueblo
+conocioLaHazania(Persona, Heroes) :-
+    persona(Persona, Pueblo, _, _),
+    estatua(Pueblo, _, _, Hazania, _),
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
+
+% cadena de inspiración
 cadenaDeInspiracion(Inicial, Cadena) :-
     cadenaDesde(Inicial, [Inicial], Cadena).
+
 % caso base: un solo salto
 cadenaDesde(Actual, Visitados, [Actual, Siguiente]) :-
-    inspiro(Actual, Siguiente),
+    inspiro(Actual, Siguiente), 
     not(member(Siguiente, Visitados)).
-%caso recursivo: un salto y seguimos desde el siguiente
-cadenaDesde(Actual, Visitados, [Actual|Resto]) :-
+
+% caso recursivo: un salto y seguimos desde el siguiente 
+cadenaDesde(Actual, Visitados, [Actual | Resto]) :-
     inspiro(Actual, Siguiente), 
     not(member(Siguiente, Visitados)),
-    cadenaDesde(Siguiente, [Siguiente|Visitados], Resto).
+    cadenaDesde(Siguiente, [Siguiente | Visitados], Resto).
 
 
 :- begin_tests(tpIntegrador, []).
@@ -434,17 +460,21 @@ test("Hay pueblos que estan viviendo tiempos sin precedentes"):-
 %     not(viviendoSinPrecedentes(1400, weise)).
 
 % test Punto 5
-test("Frieren es un heroe porque participo en una hazania conocida"):-
+test("Frieren es un heroe porque participo en una hazania conocida", nondet):-
     esUnHeroe(frieren).
 
 test("Wirbel no es un heroe porque no participo en ninguna hazania"):-
     not(esUnHeroe(wirbel)).
+test("Frieren inspiro a Fern", nondet):-
+    inspiro(frieren, fern).
 
-test("Stark inspiro a Frieren"):-
+test("Stark inspiro a Frieren", nondet):-
     inspiro(stark, frieren).
 
 test("Nadie inspiro a Eisen"):-
     not(inspiro(_, eisen)).
+test("Himmel Fern Frieren Denken es una cadena valida"):-
+    cadenaDeInspiracion(himmel, [himmel, fern, frieren, denken]).
 
 test("Denken no inspiro a Frieren, no es cadena valida"):-
     not(cadenaDeInspiracion(denken, [denken, frieren])).
