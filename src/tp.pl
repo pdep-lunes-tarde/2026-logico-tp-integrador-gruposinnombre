@@ -288,7 +288,6 @@ conocioHazania(Persona, Hazania, Heroes) :-
 
 inspiro(Inspirador, Inspirado):-
     conocioHazania(Inspirado, _, Heroes),
-    conocioHazania(Inspirado, _, Heroes),
     member(Inspirador, Heroes),
     Inspirador \= Inspirado.
 
@@ -530,27 +529,6 @@ test("no es una cadena valida si el primero no inspiro al segundo"):-
 
 test("no es una cadena valida si se repite un heroe en el camino"):-
     not(cadenaDeInspiracion(frieren, [frieren, fern, frieren])).
-
-% Tests Punto 6: Dream Team
-
-test("un dream team valido incluye al heroe junto con al menos un antecesor suyo", nondet) :-
-    dreamTeam(fern, Equipo),
-    member(himmel, Equipo),
-    member(fern, Equipo).
-
-test("el orden de los integrantes no altera la validez de un dream team", nondet) :-
-    dreamTeam(fern, [himmel, fern]),
-    dreamTeam(fern, [fern, himmel]).
-
-test("un dream team no es valido si solo incluye al heroe sin ningun antecesor") :-
-    not(dreamTeam(fern, [fern])).
-
-test("un dream team no es valido si no incluye al propio heroe") :-
-    not(dreamTeam(fern, [frieren])).
-
-test("el predicado de dream team es inversible: se puede consultar de quien es un equipo dado", nondet) :-
-    dreamTeam(Heroe, [himmel, fern]),
-    Heroe == fern.
 
 % Tests Punto 6: Dream Team
 
