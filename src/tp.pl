@@ -2,6 +2,7 @@
 %PARTE 1
 
 %Punto 1: la gente
+
 % Personas: persona(Nombre, Pueblo, AnioNacimiento, Raza)
 persona(denken,  auberst, 1290, humano).
 persona(voll,    ende,    1200, enano).
@@ -269,9 +270,26 @@ participaEn(Persona, Hazania) :-
 esUnHeroe(Persona) :-
     participaEn(Persona, _).
 
+% Definimos las 3 formas en las que alguien pudo CONOCER una hazaña
+% 1. Porque la presenció, leyó o escuchó (está directo en la base)
+conocioHazania(Persona, Hazania, Heroes) :-
+    conoceHazania(Persona, _, _, hazania(Hazania, Heroes, _)).
+
+% 2. Porque hay un día festivo en su pueblo
+conocioHazania(Persona, Hazania, Heroes) :-
+    persona(Persona, Pueblo, _, _),
+    diaFestivo(Pueblo, Hazania, _),
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
+
+% 3. Porque hay una estatua en su pueblo
+conocioHazania(Persona, Hazania, Heroes) :-
+    persona(Persona, Pueblo, _, _),
+    estatua(Pueblo, _, _, Hazania, _),
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
+
+% Ahora sí, inspiro/2 evalúa sin depender del año:
 inspiro(Inspirador, Inspirado):-
-    esRecordada(Hazania, Inspirado, _), % Si la recuerda en algún año, entonces la conoce
-    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)), % Buscamos quiénes son los héroes de esa hazaña
+    conocioHazania(Inspirado, _, Heroes),
     member(Inspirador, Heroes),
     Inspirador \= Inspirado.
 
@@ -464,7 +482,7 @@ test("Stark inspiro a Frieren", nondet):-
 
 test("Nadie inspiro a Eisen"):-
     not(inspiro(_, eisen)).
-test("Himmel Fern Frieren Denken es una cadena valida"):-
+test("Himmel Fern Frieren Denken es una cadena valida", nondet):-
     cadenaDeInspiracion(himmel, [himmel, fern, frieren, denken]).
 
 test("Denken no inspiro a Frieren, no es cadena valida"):-
