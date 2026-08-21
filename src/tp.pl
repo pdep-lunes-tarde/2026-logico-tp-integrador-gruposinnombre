@@ -32,12 +32,12 @@ murio(Persona, Anio):-
 %Punto 2: los recuerdos
 %conoceHazania(personaje, forma(cantidadPaginas), anio, hazania (Hazania, heroes, hugar))
 
-conoceHazania(wirbel, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, heroes(stark, fern), klares)).
-conoceHazania(frieren, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, heroes(stark, fern), klares)).
-conoceHazania(lawine, escucho, 1393, hazania(destruirAlDemonioAura, heroes(frieren), weise)).
-conoceHazania(voll, leyo(50), 1400, hazania(destruirAlDemonioAura, heroes(denken), auberst)). %otra version misma hazania
-conoceHazania(serie, leyo(100), 1335, hazania(destruirAlReyDemonio, heroes(frieren, himmel, heiter, eisen), ende)).
-conoceHazania(kanne, presencio, 1375, hazania(recuperarAlGatoPerdido, heroes(himmel, frieren), weise)).
+conoceHazania(wirbel, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, [stark, fern], klares)).
+conoceHazania(frieren, presencio, 1390, hazania(rescatarALaHermanaDeWirbel, [stark, fern], klares)).
+conoceHazania(lawine, escucho, 1393, hazania(destruirAlDemonioAura, [frieren], weise)).
+conoceHazania(voll, leyo(50), 1400, hazania(destruirAlDemonioAura, [denken], auberst)).
+conoceHazania(serie, leyo(100), 1335, hazania(destruirAlReyDemonio, [frieren, himmel, heiter, eisen], ende)).
+conoceHazania(kanne, presencio, 1375, hazania(recuperarAlGatoPerdido, [himmel, frieren], weise)).
 
 %Queremos poder contestar sí una hazaña es recordada por alguien en cierto año, sabiendo que:
     %si una persona presenció una hazaña, la recuerda desde ese momento por el resto de su vida.
@@ -250,7 +250,7 @@ viviendoSinPrecedentes(Anio, Pueblo):-
 %--------------------------
 % Punto 5
 
-esUnHeroe(Persona) :- 
+/* esUnHeroe(Persona) :- 
     conoceHazania(_, _, _, hazania(_, Heroes, _)), 
     estaEntreLosHeroes(Persona, Heroes).
 
@@ -260,29 +260,20 @@ estaEntreLosHeroes(P, heroes(_, P)).
 estaEntreLosHeroes(P, heroes(P, _, _, _)).
 estaEntreLosHeroes(P, heroes(_, P, _, _)).
 estaEntreLosHeroes(P, heroes(_, _, P, _)).
-estaEntreLosHeroes(P, heroes(_, _, _, P)).
+estaEntreLosHeroes(P, heroes(_, _, _, P)). */
 
-inspiro(Inspirador, Inspirado) :- 
-    conocioLaHazania(Inspirado, Heroes),
-    estaEntreLosHeroes(Inspirador, Heroes),
+participaEn(Persona, Hazania) :-
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)),
+    member(Persona, Heroes).
+
+esUnHeroe(Persona) :-
+    participaEn(Persona, _).
+
+inspiro(Inspirador, Inspirado):-
+    esRecordada(Hazania, Inspirado, _), % Si la recuerda en algún año, entonces la conoce
+    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)), % Buscamos quiénes son los héroes de esa hazaña
+    member(Inspirador, Heroes),
     Inspirador \= Inspirado.
-%conoció una hazaña (i con qué heroes), de las tres formas posibles:
-
-% por conoceHazania 
-conocioLaHazania(Persona, Heroes) :-
-    conoceHazania(Persona, _, _, hazania(_, Heroes, _)).
-
-% por día festivo en su pueblo
-conocioLaHazania(Persona, Heroes) :-
-    persona(Persona, Pueblo, _, _),
-    diaFestivo(Pueblo, Hazania, _),
-    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
-
-% por estatua en su pueblo
-conocioLaHazania(Persona, Heroes) :-
-    persona(Persona, Pueblo, _, _),
-    estatua(Pueblo, _, _, Hazania, _),
-    conoceHazania(_, _, _, hazania(Hazania, Heroes, _)).
 
 % cadena de inspiración
 cadenaDeInspiracion(Inicial, Cadena) :-
