@@ -232,7 +232,7 @@ esChismosoEn(Anio, Pueblo):-
 
 % si una hazaña es importante para un pueblo. Esto ocurre cuando todos los habitantes de ese pueblo que viven en ese año la recuerdan.
 esImportanteEn(Anio, Pueblo, Hazania):-
-    persona(_, Pueblo, _, _),
+    puebloRecuerdaEn(Anio, Hazania, Pueblo), % <--- GENERADOR: Primero buscamos qué hazaña recuerda el pueblo
     forall(
         (persona(Persona, Pueblo, _, _), estaVivo(Persona, Anio)),
         esRecordada(Hazania, Persona, Anio)
@@ -241,7 +241,7 @@ esImportanteEn(Anio, Pueblo, Hazania):-
 % si un pueblo está viviendo tiempos sin precedentes,
 % se cumple si todas las hazañas importantes que se recuerdan en un pueblo se recuerdan porque alguien del pueblo las presenció.
 viviendoSinPrecedentes(Anio, Pueblo):-
-    persona(_, Pueblo, _, _),
+    esImportanteEn(Anio, Pueblo, _), % <--- EXISTENCIA: Aseguramos que el pueblo tenga al menos una hazaña importante
     forall(
         esImportanteEn(Anio, Pueblo, Hazania),
         (persona(Persona, Pueblo, _, _),
@@ -308,6 +308,45 @@ cadenaDesde(Actual, Visitados, [Actual | Resto]) :-
     not(member(Siguiente, Visitados)),
     cadenaDesde(Siguiente, [Siguiente | Visitados], Resto).
 
+% Punto 6
+
+% Un héroe A es antecesor de B si existe una cadena de inspiración que empieza en A y termina en B.
+antecesor(Antecesor, Heroe) :-
+    cadenaDeInspiracion(Antecesor, Cadena),
+    last(Cadena, Heroe), % last/2 es de Prolog, saca el último elemento de la lista
+    Antecesor \= Heroe.
+
+dreamTeam(Heroe, Equipo) :-
+    esUnHeroe(Heroe),
+    findall(Ant, antecesor(Ant, Heroe), AntecesoresBrutos),
+    sinRepetidos(AntecesoresBrutos, Antecesores), 
+    subconjunto(Antecesores, Subconjunto),
+    Subconjunto \= [],
+    permutar([Heroe | Subconjunto], Equipo).
+
+% --- PREDICADOS AUXILIARES
+
+% 1 - Eliminamos elementos duplicados de una lista.
+sinRepetidos([], []).
+% Si el elemento está más adelante en la cola, lo ignoramos ahora.
+sinRepetidos([Cabezal | Cola], Resultado) :-
+    member(Cabezal, Cola),
+    sinRepetidos(Cola, Resultado).
+% Si el elemento no está en la cola, lo dejamos.
+sinRepetidos([Cabezal | Cola], [Cabezal | Resultado]) :-
+    not(member(Cabezal, Cola)),
+    sinRepetidos(Cola, Resultado).
+
+% 2 - Generamos subconjuntos
+subconjunto([], []).
+subconjunto([X | Resto], [X | Sub]) :- subconjunto(Resto, Sub).
+subconjunto([_ | Resto], Sub) :- subconjunto(Resto, Sub).
+
+% 3 - Generamos todas las combinaciones de orden posibles.
+permutar([], []).
+permutar(Lista, [Elemento | RestoPermutado]) :-
+    nth1(_, Lista, Elemento, RestoLista), 
+    permutar(RestoLista, RestoPermutado).
 
 :- begin_tests(tpIntegrador, []).
 
@@ -462,33 +501,56 @@ test("Hay anios que un pueblo considera hazanias importantes", nondet):-
 test("Hay anios que un pueblo no considera hazanias importantes"):-
     not(esImportanteEn(1400, weise, recuperarAlGatoPerdido)).
 
-test("Hay pueblos que estan viviendo tiempos sin precedentes"):-
+test("Hay pueblos que estan viviendo tiempos sin precedentes", nondet):-
     viviendoSinPrecedentes(1395, klares).
 
-% test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
-%     not(viviendoSinPrecedentes(1400, weise)).
+test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
+    not(viviendoSinPrecedentes(1400, weise)).
 
 % test Punto 5
-test("Frieren es un heroe porque participo en una hazania conocida", nondet):-
+test("un heroe es alguien que participo en al menos una hazania conocida", nondet):-
     esUnHeroe(frieren).
 
-test("Wirbel no es un heroe porque no participo en ninguna hazania"):-
+test("alguien que no participo en ninguna hazania no es un heroe"):-
     not(esUnHeroe(wirbel)).
-test("Frieren inspiro a Fern", nondet):-
+
+test("alguien inspiro a otro si este conocio una hazania en la que el primero participo", nondet):-
     inspiro(frieren, fern).
 
-test("Stark inspiro a Frieren", nondet):-
+test("un heroe puede inspirar a otro heroe que aparecio despues", nondet):-
     inspiro(stark, frieren).
 
-test("Nadie inspiro a Eisen"):-
+test("nadie inspiro a alguien que no conoce ninguna hazania con otros participantes"):-
     not(inspiro(_, eisen)).
-test("Himmel Fern Frieren Denken es una cadena valida", nondet):-
+
+test("una cadena de inspiracion valida es una secuencia donde cada uno inspiro al siguiente", nondet):-
     cadenaDeInspiracion(himmel, [himmel, fern, frieren, denken]).
 
-test("Denken no inspiro a Frieren, no es cadena valida"):-
+test("no es una cadena valida si el primero no inspiro al segundo"):-
     not(cadenaDeInspiracion(denken, [denken, frieren])).
 
-test("No es cadena valida si se repite un heroe"):-
+test("no es una cadena valida si se repite un heroe en el camino"):-
     not(cadenaDeInspiracion(frieren, [frieren, fern, frieren])).
+
+% Tests Punto 6: Dream Team
+
+test("un dream team valido incluye al heroe junto con al menos un antecesor suyo", nondet) :-
+    dreamTeam(fern, Equipo),
+    member(himmel, Equipo),
+    member(fern, Equipo).
+
+test("el orden de los integrantes no altera la validez de un dream team", nondet) :-
+    dreamTeam(fern, [himmel, fern]),
+    dreamTeam(fern, [fern, himmel]).
+
+test("un dream team no es valido si solo incluye al heroe sin ningun antecesor") :-
+    not(dreamTeam(fern, [fern])).
+
+test("un dream team no es valido si no incluye al propio heroe") :-
+    not(dreamTeam(fern, [frieren])).
+
+test("el predicado de dream team es inversible: se puede consultar de quien es un equipo dado", nondet) :-
+    dreamTeam(Heroe, [himmel, fern]),
+    Heroe == fern.
 
 :- end_tests(tpIntegrador).
