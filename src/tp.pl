@@ -232,8 +232,7 @@ esChismosoEn(Anio, Pueblo):-
 
 % si una hazaña es importante para un pueblo. Esto ocurre cuando todos los habitantes de ese pueblo que viven en ese año la recuerdan.
 esImportanteEn(Anio, Pueblo, Hazania):-
-    puebloRecuerdaEn(Anio, Hazania, Pueblo), % <--- GENERADOR: Primero buscamos qué hazaña recuerda el pueblo
-    puebloRecuerdaEn(Anio, Hazania, Pueblo), % <--- GENERADOR: Primero buscamos qué hazaña recuerda el pueblo
+    puebloRecuerdaEn(Anio, Hazania, Pueblo),
     forall(
         (persona(Persona, Pueblo, _, _), estaVivo(Persona, Anio)),
         esRecordada(Hazania, Persona, Anio)
@@ -242,8 +241,7 @@ esImportanteEn(Anio, Pueblo, Hazania):-
 % si un pueblo está viviendo tiempos sin precedentes,
 % se cumple si todas las hazañas importantes que se recuerdan en un pueblo se recuerdan porque alguien del pueblo las presenció.
 viviendoSinPrecedentes(Anio, Pueblo):-
-    esImportanteEn(Anio, Pueblo, _), % <--- EXISTENCIA: Aseguramos que el pueblo tenga al menos una hazaña importante
-    esImportanteEn(Anio, Pueblo, _), % <--- EXISTENCIA: Aseguramos que el pueblo tenga al menos una hazaña importante
+    esImportanteEn(Anio, Pueblo, _), 
     forall(
         esImportanteEn(Anio, Pueblo, Hazania),
         (persona(Persona, Pueblo, _, _),
@@ -503,46 +501,33 @@ test("Hay anios que un pueblo no considera hazanias importantes"):-
     not(esImportanteEn(1400, weise, recuperarAlGatoPerdido)).
 
 test("Hay pueblos que estan viviendo tiempos sin precedentes", nondet):-
-test("Hay pueblos que estan viviendo tiempos sin precedentes", nondet):-
     viviendoSinPrecedentes(1395, klares).
 
-test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
-    not(viviendoSinPrecedentes(1400, weise)).
 test("Hay pueblos que no estan viviendo tiempos sin precedentes"):-
     not(viviendoSinPrecedentes(1400, weise)).
 
 % test Punto 5
 test("un heroe es alguien que participo en al menos una hazania conocida", nondet):-
-test("un heroe es alguien que participo en al menos una hazania conocida", nondet):-
     esUnHeroe(frieren).
 
-test("alguien que no participo en ninguna hazania no es un heroe"):-
 test("alguien que no participo en ninguna hazania no es un heroe"):-
     not(esUnHeroe(wirbel)).
 
 test("alguien inspiro a otro si este conocio una hazania en la que el primero participo", nondet):-
+    inspiro(frieren, fern). 
 
-test("alguien inspiro a otro si este conocio una hazania en la que el primero participo", nondet):-
-    inspiro(frieren, fern).
-
-test("un heroe puede inspirar a otro heroe que aparecio despues", nondet):-
 test("un heroe puede inspirar a otro heroe que aparecio despues", nondet):-
     inspiro(stark, frieren).
 
 test("nadie inspiro a alguien que no conoce ninguna hazania con otros participantes"):-
-test("nadie inspiro a alguien que no conoce ninguna hazania con otros participantes"):-
     not(inspiro(_, eisen)).
-
-test("una cadena de inspiracion valida es una secuencia donde cada uno inspiro al siguiente", nondet):-
 
 test("una cadena de inspiracion valida es una secuencia donde cada uno inspiro al siguiente", nondet):-
     cadenaDeInspiracion(himmel, [himmel, fern, frieren, denken]).
 
 test("no es una cadena valida si el primero no inspiro al segundo"):-
-test("no es una cadena valida si el primero no inspiro al segundo"):-
     not(cadenaDeInspiracion(denken, [denken, frieren])).
 
-test("no es una cadena valida si se repite un heroe en el camino"):-
 test("no es una cadena valida si se repite un heroe en el camino"):-
     not(cadenaDeInspiracion(frieren, [frieren, fern, frieren])).
 
